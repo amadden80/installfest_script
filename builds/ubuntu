@@ -319,7 +319,7 @@ INSTALL_REPO=https://github.com/ga-instructors/installfest_script.git
 # `MACHTYPE` system type in cpu-company-system
 # `SECONDS` number of seconds since the shell was started.
 OWNER="ga-students"
-REPO="godot_instructors"
+REPO="wdi_woodstock_instructors"
 
 
 # This refers to the branch of our repo that we are using (for cloning).
@@ -707,10 +707,10 @@ sudo apt-get -y update
 sudo apt-get -y install google-chrome-stable
 
 # hipchat
-sudo sh -c 'echo "deb http://downloads.hipchat.com/linux/apt stable main" > /etc/apt/sources.list.d/atlassian-hipchat.list'
-wget -O - https://www.hipchat.com/keys/hipchat-linux.key | sudo apt-key add -
-sudo apt-get -y update
-sudo apt-get -y install hipchat
+# sudo sh -c 'echo "deb http://downloads.hipchat.com/linux/apt stable main" > /etc/apt/sources.list.d/atlassian-hipchat.list'
+# wget -O - https://www.hipchat.com/keys/hipchat-linux.key | sudo apt-key add -
+# sudo apt-get -y update
+# sudo apt-get -y install hipchat
 
 # sublime
 sudo add-apt-repository -y ppa:webupd8team/sublime-text-2
@@ -803,58 +803,6 @@ for filepath in "${dotfiles[@]}"; do
 
   cp $filepath "$HOME/$dotfile"
 done
-
-# Don't ask questions
-export DEBIAN_FRONTEND=noninteractive
-sudo apt-get install -y mailutils
-
-echo "Script now will gather your mac address and send to the class chatbot for"
-echo "attendance purposes"
-
-# Get MAC address for attendance
-# TODO (phlco) do we need sudo here again?
-mac_address=$(sudo ifconfig en0 | grep ether | sed -e 's/^[ \t|ether|\s|\n]*//')
-
-# cat "$HOME/.wdi/install.log"> $EMAILMESSAGE
-
-# create file
-# PUT /repos/:owner/:repo/contents/:path
-
-subject="Installfest Log Report for $fname $lname"
-user_name=$(ruby -e "n = '$fname $lname';puts n.gsub(' ', '_').downcase;")
-
-user_info='{
-        name: "'"$fname $lname"'",
-        github: {
-          name: "'"$github_name"'",
-          email: "'"$github_email"'"
-        },
-        specs: {
-          mac_address: "'"$mac_address"'",
-          os_version: "'"$os_version"'",
-          os_type: "'"$OSTYPE"'"
-        }
-      }'
-
-encoded_content=$(ruby -rjson -rbase64 -e "puts Base64.strict_encode64($user_info.to_json);")
-
-payload='{
-  message: "'"$subject"'",
-  committer: {
-    name: "'"$fname $lname"'",
-    email: "'"$github_email"'"
-  },
-  content: "'"$encoded_content"'"
-}'
-
-timestamp=$(date +%s)
-
-curl "https://api.github.com/repos/$OWNER/$REPO/contents/logs/installfest/$user_name-$timestamp.json" \
-  -X "PUT" \
-  -H "User-Agent: WDIInstallFest" \
-  -H "Accept: application/vnd.github.v3+json" \
-  -u "$github_name:$github_password" \
-  -d "$(ruby -rjson -e "j=$payload; puts j.to_json")"
 
 
 
